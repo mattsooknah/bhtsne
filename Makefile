@@ -3,7 +3,7 @@
 #CFLAGS = -march=haswell -ffast-math -O3
 
 CXX = g++
-CFLAGS = -ffast-math -O3 -march=native
+CFLAGS = -ffast-math -O3
 
 all: bh_tsne
 

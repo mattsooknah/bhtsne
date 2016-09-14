@@ -31,7 +31,9 @@
  */
 
 
-
+#include <iostream>
+#include <string>
+#include <vector>
 #include <math.h>
 #include <float.h>
 #include <stdlib.h>
@@ -664,11 +666,11 @@ double TSNE::randn() {
 
 // Function that loads data from a t-SNE file
 // Note: this function does a malloc that should be freed elsewhere
-bool TSNE::load_data(double** data, int* n, int* d, int* no_dims, double* theta, double* perplexity, int* rand_seed, int* max_iter) {
+bool TSNE::load_data(const char* dat_file, double** data, int* n, int* d, int* no_dims, double* theta, double* perplexity, int* rand_seed, int* max_iter) {
 
 	// Open file, read first 2 integers, allocate memory, and read the data
     FILE *h;
-	if((h = fopen("data.dat", "r+b")) == NULL) {
+	if((h = fopen(dat_file, "r+b")) == NULL) {
 		printf("Error: could not open data file.\n");
 		return false;
 	}
@@ -688,11 +690,11 @@ bool TSNE::load_data(double** data, int* n, int* d, int* no_dims, double* theta,
 }
 
 // Function that saves map to a t-SNE file
-void TSNE::save_data(double* data, int* landmarks, double* costs, int n, int d) {
+void TSNE::save_data(const char* res_file, double* data, int* landmarks, double* costs, int n, int d) {
 
 	// Open file, write first 2 integers and then the data
 	FILE *h;
-	if((h = fopen("result.dat", "w+b")) == NULL) {
+	if((h = fopen(res_file, "w+b")) == NULL) {
 		printf("Error: could not open data file.\n");
 		return;
 	}
@@ -707,7 +709,18 @@ void TSNE::save_data(double* data, int* landmarks, double* costs, int n, int d) 
 
 
 // Function that runs the Barnes-Hut implementation of t-SNE
-int main() {
+int main(int argc, char *argv[]) {
+
+    // load input and output
+    std::string dat_file = "data.dat";
+    std::string res_file = "result.dat";
+    if (argc > 1) {
+        dat_file = argv[1];
+        res_file = argv[2];
+    }
+
+    const char *dat_file_c = dat_file.c_str();
+    const char *res_file_c = res_file.c_str();
 
     // Define some variables
 	int origN, N, D, no_dims, max_iter, *landmarks;
@@ -717,10 +730,10 @@ int main() {
     TSNE* tsne = new TSNE();
 
     // Read the parameters and the dataset
-	if(tsne->load_data(&data, &origN, &D, &no_dims, &theta, &perplexity, &rand_seed, &max_iter)) {
+	if(tsne->load_data(dat_file_c, &data, &origN, &D, &no_dims, &theta, &perplexity, &rand_seed, &max_iter)) {
 
-    // assert that no_dims = 2. if not, the template hack won't work.
-    if (no_dims != 2) { printf("Number of dims must be 2!\n"); exit(1); }
+        // assert that no_dims = 2. if not, the template hack won't work.
+        if (no_dims != 2) { printf("Number of dims must be 2!\n"); exit(1); }
 
 		// Make dummy landmarks
         N = origN;
@@ -735,7 +748,7 @@ int main() {
 		tsne->run(data, N, D, Y, no_dims, perplexity, theta, rand_seed, false, max_iter);
 
 		// Save the results
-		tsne->save_data(Y, landmarks, costs, N, no_dims);
+		tsne->save_data(res_file_c, Y, landmarks, costs, N, no_dims);
 
         // Clean up the memory
 		free(data); data = NULL;
