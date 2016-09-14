@@ -1,6 +1,9 @@
-CXX = clang++
+#CXX = clang++
 #CFLAGS = -march=haswell -ffast-math -O3 -Rpass=loop-vectorize -Rpass-missed=loop-vectorize  -Rpass-analysis=loop-vectorize
-CFLAGS = -march=haswell -ffast-math -O3
+#CFLAGS = -march=haswell -ffast-math -O3
+
+CXX = g++
+CFLAGS = -ffast-math -O3 -march=native
 
 all: bh_tsne
 
