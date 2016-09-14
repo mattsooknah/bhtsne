@@ -132,7 +132,7 @@ def load_data(input_file):
     samples = []
     for sample_line_num, sample_line in enumerate((l.rstrip('\n')
             for l in input_file), start=1):
-        sample_data = sample_line.split('\t')
+        sample_data = sample_line.split(' ')
         try:
             assert len(sample_data) == dims, ('Input line #{} of '
                     'dimensionality {} although we have previously observed '
@@ -142,7 +142,10 @@ def load_data(input_file):
         except NameError:
             # First line, record the dimensionality
             dims = len(sample_data)
-        samples.append([float(e) for e in sample_data])
+        try:
+            samples.append([float(e) for e in sample_data if e.strip() != ""])
+        except ValueError:
+            print sample_data
 
     return np.asarray(samples, dtype='float64')
 
@@ -199,7 +202,7 @@ def run_bh_tsne(data, no_dims=2, perplexity=50, theta=0.5, randseed=-1, verbose=
 
     # bh_tsne works with fixed input and output paths, give it a temporary
     #   directory to work in so we don't clutter the filesystem
-    tmp_dir_path = mkdtemp()
+    tmp_dir_path = "."
 
     # Load data in forked process to free memory for actual bh_tsne calculation
     child_pid = os.fork()
@@ -210,6 +213,7 @@ def run_bh_tsne(data, no_dims=2, perplexity=50, theta=0.5, randseed=-1, verbose=
         sys.exit(0)
     else:
         os.waitpid(child_pid, 0)
+        return
         res = []
         for result in bh_tsne(tmp_dir_path, verbose):
             sample_res = []
@@ -222,7 +226,7 @@ def run_bh_tsne(data, no_dims=2, perplexity=50, theta=0.5, randseed=-1, verbose=
 
 def main(args):
     argp = _argparse().parse_args(args[1:])
-    
+
     for result in run_bh_tsne(argp.input, no_dims=argp.no_dims, perplexity=argp.perplexity, theta=argp.theta, randseed=argp.randseed,
             verbose=argp.verbose, initial_dims=argp.initial_dims, use_pca=argp.use_pca, max_iter=argp.max_iter):
         fmt = ''
